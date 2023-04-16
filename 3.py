@@ -4,10 +4,16 @@ MAX = 6
 
 sum_ = 0
 product = 1
+found = False
 
 for num in lst:
     if MIN <= num <= MAX:
+        found = True
         sum_ += num
         product *= num
 
-print(f"sum_ = {sum_}, product = {product}")
+if not found:
+    sum_ = 0
+    product = 0
+
+print(sum_, product)
