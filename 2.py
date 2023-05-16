@@ -1,17 +1,27 @@
-numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+class AttributePrinterMixin:
+    def __str__(self):
+        return self._format_attributes(self.__class__, self.__dict__)
 
-divisible_by_3_not_5 = []
-divisible_by_5_not_3 = []
-divisible_by_3_and_5 = []
+    @staticmethod
+    def _format_attributes(cls, attributes):
+        output = f"{cls.__name__}: {{\n"
+        for key, value in attributes.items():
+            if key.startswith("__") and key.endswith("__"):  # Skip built-in attributes
+                continue
+            if key.startswith("_"):
+                if key.startswith(f"_{cls.__name__}__"):  # Private attribute
+                    key = key[len(cls.__name__) + 2:]
+                else:  # Protected attribute
+                    key = key[1:]
+            output += f"\t{key}: {value}\n"
+        output += "}"
+        return output
+class MyClass(AttributePrinterMixin):
+    def __init__(self):
+        self.public_field = 42
+        self._protected_field = "protected"
+        self.__private_field = [1, 2, 3]
 
-for num in numbers:
-    if num % 3 == 0 and num % 5 == 0:
-        divisible_by_3_and_5.append(num)
-    elif num % 3 == 0:
-        divisible_by_3_not_5.append(num)
-    elif num % 5 == 0:
-        divisible_by_5_not_3.append(num)
 
-print("Числа, которые делятся только на 3, но не на 5:", divisible_by_3_not_5)
-print("Числа, которые делятся только на 5, но не на 3:", divisible_by_5_not_3)
-print("Числа, которые делятся и на 3, и на 5:", divisible_by_3_and_5)
+obj = MyClass()
+print(obj)
