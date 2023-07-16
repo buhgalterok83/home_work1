@@ -2,26 +2,20 @@ import os
 import random
 import string
 import time
-from multiprocessing import Pool
-
+from concurrent.futures import ThreadPoolExecutor
 
 def file_generator(directory, number_of_files, size):
     os.makedirs(directory, exist_ok=True)
     for i in range(number_of_files):
         filename = os.path.join(directory, f'file{i}.txt')
-        content = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation,
-                                         k=random.randint(size // 2, size)))
+        content = ''.join(random.choices(string.ascii_letters + string.digits + string.punctuation, k=random.randint(size // 2, size)))
         with open(filename, 'w') as file:
             file.write(content)
 
-
 def count_letters_in_file(filename, letter_to_find):
-    count = 0
     with open(filename, 'r') as file:
         content = file.read()
-        count = content.count(letter_to_find)
-    return count
-
+        return content.count(letter_to_find)
 
 def letter_counter_in_one_thread(directory, letter_to_find):
     count = 0
@@ -31,12 +25,6 @@ def letter_counter_in_one_thread(directory, letter_to_find):
             count += count_letters_in_file(filepath, letter_to_find)
     return count
 
-
-def count_letters_in_file_wrapper(args):
-    filename, letter_to_find = args
-    return count_letters_in_file(filename, letter_to_find)
-
-
 def letter_counter_in_n_threads(directory, letter_to_find, number_of_threads):
     count = 0
     files = []
@@ -45,12 +33,12 @@ def letter_counter_in_n_threads(directory, letter_to_find, number_of_threads):
             filepath = os.path.join(directory, filename)
             files.append(filepath)
 
-    with Pool(number_of_threads) as pool:
-        results = pool.map(count_letters_in_file_wrapper, [(filename, letter_to_find) for filename in files])
-        count = sum(results)
+    with ThreadPoolExecutor(max_workers=number_of_threads) as executor:
+        results = executor.map(count_letters_in_file, files, [letter_to_find] * len(files))
+        for result in results:
+            count += result
 
     return count
-
 
 def main():
     directory = 'files'
@@ -78,7 +66,6 @@ def main():
     end_time = time.time()
     print(f"Count in {number_of_threads} threads: {count_multi_thread}")
     print(f"Time taken in {number_of_threads} threads: {end_time - start_time} seconds")
-
 
 if __name__ == '__main__':
     main()
